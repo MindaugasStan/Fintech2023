@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
         String selectedOption = this.spCountingOptions.getSelectedItem().toString();
         if(userInput.matches("")){
             Toast.makeText(this, "Input is empty!", Toast.LENGTH_LONG).show();
-            this.tvResult.setText("0");
-            return;
         }
         if (selectedOption.equalsIgnoreCase(getResources().getString(R.string.chars_selection))) {
             this.tvResult.setText(getCharsCount(userInput));
