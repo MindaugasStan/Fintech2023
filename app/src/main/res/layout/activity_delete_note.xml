@@ -4,12 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".DeleteNoteActivity">
 
-    <ListView
-        android:id="@+id/lvNotes"
+    <Spinner
+        android:id="@+id/spNotes"
         android:layout_width="409dp"
-        android:layout_height="729dp"
+        android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_del"
+        android:onClick="btnDeleteClick"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spNotes" />
 </androidx.constraintlayout.widget.ConstraintLayout>
