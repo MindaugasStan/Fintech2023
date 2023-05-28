@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/add_note_activity"
-        android:title="@string/btn_add"/>
-    <item android:id="@+id/delete_note_activity"
-        android:title="@string/btn_del"/>
-</menu>

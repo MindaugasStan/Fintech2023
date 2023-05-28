@@ -1,68 +1,102 @@
 package com.example.fintech2023;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.fintech2023.utilities.ApiDataReader;
+import com.example.fintech2023.utilities.AsyncDataLoader;
+import com.example.fintech2023.utilities.Constants;
+
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private ListView lvNotes;
+    private ListView lvItems;
+    private TextView tvStatus;
     private ArrayAdapter listAdapter;
-    private ArrayList<String> notesList;
+    private Switch swUseAsyncTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.lvNotes = findViewById(R.id.lvNotes);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        this.notesList = new ArrayList<>(sp.getStringSet("note", new HashSet<>()));
-        this.listAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, notesList);
-        this.lvNotes.setAdapter(this.listAdapter);
+        this.lvItems = findViewById(R.id.lv_items);
+        this.tvStatus = findViewById(R.id.tv_status);
+        this.swUseAsyncTask = findViewById(R.id.sw_use_async_task);
+
+        this.listAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, new ArrayList<>());
+        this.lvItems.setAdapter(this.listAdapter);
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        //Your adapter loses reference to your list.
-        //https://stackoverflow.com/questions/15422120/notifydatasetchange-not-working-from-custom-adapter
-        notesList.clear();
-        this.notesList.addAll((sp.getStringSet("note", new HashSet<>())));
-        listAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add_note_activity:
-                Intent addActivityIntent = new Intent(getApplicationContext(), com.example.fintech2023.AddNoteActivity.class);
-                startActivity(addActivityIntent);
-                return true;
-            case R.id.delete_note_activity:
-                Intent deleteActivityIntent = new Intent(getApplicationContext(), com.example.fintech2023.DeleteNoteActivity.class);
-                startActivity(deleteActivityIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+    public void onBtnGetDataClick(View view) {
+        this.tvStatus.setText(R.string.loading_data);
+        if(this.swUseAsyncTask.isChecked()){
+            getDataByAsyncTask();
+            Toast.makeText(this, R.string.msg_using_async_task, Toast.LENGTH_LONG).show();
         }
+        else{
+            getDataByThread();
+            Toast.makeText(this, R.string.msg_using_thread, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void getDataByAsyncTask(){
+        new AsyncDataLoader() {
+            @Override
+            public void onPostExecute(String result) {
+                tvStatus.setText(getString(R.string.data_loaded) + result);
+            }
+//        }.execute(Constants.GUNFIRE_URL);
+        //}.execute(Constants.METEOLT_API_URL);
+        //}.execute(Constants.METEOLT_API_URL);
+          }.execute(Constants.ECBEUROPE_URL);
+    }
+
+    public void getDataByThread() {
+        this.tvStatus.setText(R.string.loading_data);
+        Runnable getDataAndDisplayRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final String result = ApiDataReader.getValuesFromApi(Constants.ECBEUROPE_URL);
+                    Runnable updateUIRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            tvStatus.setText(getString(R.string.data_loaded) + result);
+                        }
+                    };
+                    runOnUiThread(updateUIRunnable);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        Thread thread = new Thread(getDataAndDisplayRunnable);
+        thread.start();
+
+        //with Lambdas --->
+
+//        new Thread(() -> {
+//            try {
+//                final String result = ApiDataReader.getValuesFromApi(Constants.FLOATRATES_API_URL);
+//                runOnUiThread(() -> tvStatus.setText(getString(R.string.data_loaded) + result));
+//            } catch (IOException ex) {
+//                runOnUiThread(() -> tvStatus.setText("Error occured:" + ex.getMessage()));
+//            }
+//        }).start();
     }
 }
